@@ -16,7 +16,7 @@
 > [!WARNING]
 > Admin to select `Add python.exe to PATH` while installing
 
-![admin](./documents/python_install.jpg)
+![admin](https://miro.medium.com/v2/resize:fit:1400/0*X2Meg0oqrc_y7hBn)
 #### 3.Install
 Click `Install Now` and click `Next` untill finished
 
