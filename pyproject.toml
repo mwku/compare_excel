@@ -1,0 +1,10 @@
+[project]
+name = "excel"
+version = "0.1.0"
+description = "Add your description here"
+readme = "documents/README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "customtkinter>=6.0.0",
+    "pandas>=3.0.6",
+]
