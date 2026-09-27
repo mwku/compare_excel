@@ -16,8 +16,11 @@
 > [!WARNING]
 > Admin to select `Add python.exe to PATH` while installing
 
-![admin](./python_install.jpg)
+![admin](./documents/python_install.jpg)
 #### 3.Install
 Click `Install Now` and click `Next` untill finished
 
-## Installing python modules
+### Installing python modules in windows
+#### 1.Open `powershell`
+#### 2.Input `pip install <module name>`
+#### 3.Install all of the modules that this program needs
