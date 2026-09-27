@@ -24,18 +24,23 @@ class Alert(ctk.CTkToplevel):
         if self.winfo_exists():
             self.after_idle(self.focus_force)
 
-class Upload(ctk.CTk):
-    def __init__(self,read_file:Callable):
+class App(ctk.CTk):
+    def __init__(self,read_file:Callable,compare_same:Callable):
         super().__init__()
         self.read_file = read_file
+        self.compare_same = compare_same
 
         self.title("Compare Excel Files")
-        self.geometry("600x400")
+        self.geometry("480x320")
         self.path_a = ""
         self.path_b = ""
         self.alert=None
+        self.resizable(False, False)
+        # self.minsize(480, 320)
         # self.state('zoomed')
+        self.init_ui()
 
+    def init_ui(self):
         self.container = ctk.CTkFrame(self)
         self.container.configure(height=190,width=600,fg_color="transparent")
         self.container.place(relx=0.5, rely=0.4, anchor="center")
@@ -72,13 +77,34 @@ class Upload(ctk.CTk):
         )
         self.path_b_label.pack(pady=5, padx=0, side="top", anchor="center")
 
-
         self.submit_button = ctk.CTkButton(self, text="Submit", command=self.submit, state="disabled")
         self.submit_button.configure(height=50,width=400)
-        self.submit_button.place(relx=0.5, rely=0.7, anchor="center")
+        self.submit_button.place(relx=0.5, rely=0.75, anchor="center")
 
     def submit(self):
-        pass
+        self.container.destroy()
+        self.submit_button.destroy()
+
+        self.function_choice_container = ctk.CTkFrame(self)
+        self.function_choice_container.configure(width=600,height=90,fg_color="transparent")
+        self.function_choice_container.place(relx=0.5, rely=0.4, anchor="center")
+
+        self.compare_same_button = ctk.CTkButton(self.function_choice_container, text="配對零件編號", command=self.compare_same_,fg_color="#61bd69",hover_color="#336c38")
+        self.compare_same_button.configure(height=90,width=180)
+        self.compare_same_button.pack(pady=0, padx=25, side="left", anchor="center")
+
+        self.compare_different_button = ctk.CTkButton(self.function_choice_container, text="配對差異", command=self.compare_different)
+        self.compare_different_button.configure(height=90,width=180)
+        self.compare_different_button.pack(pady=0, padx=25, side="left", anchor="center")
+
+        self.back_button = ctk.CTkButton(self, text="last page", command=self.back)
+        self.back_button.configure(height=50,width=180)
+        self.back_button.place(relx=0.5, rely=0.75, anchor="center")
+
+    def back(self):
+        self.function_choice_container.destroy()
+        self.back_button.destroy()
+        self.init_ui()
 
     def upload_file_a(self):
         file_path = ctk.filedialog.askopenfilename(title="Select File A", filetypes=[("Excel files", "*.xlsx"), ("CSV files", "*.csv")])
@@ -94,6 +120,7 @@ class Upload(ctk.CTk):
         except Exception as e:
             self.alert = Alert(self, f"Failed to read file: {e}")
             self.alert.focus()
+
     def upload_file_b(self):
         file_path = ctk.filedialog.askopenfilename(title="Select File B", filetypes=[("Excel files", "*.xlsx"), ("CSV files", "*.csv")])
         try:
@@ -108,3 +135,14 @@ class Upload(ctk.CTk):
         except Exception as e:
             self.alert = Alert(self, f"Failed to read file: {e}")
             self.alert.focus()
+
+    def compare_same_(self):
+        try:
+            self.result=self.compare_same(self.read_file(self.path_a), self.read_file(self.path_b))
+        except Exception as e:
+            self.alert = Alert(self, f"Failed to compare files: {e}")
+            self.alert.focus()
+            # print(f"Failed to compare files: {e}")
+
+    def compare_different(self):
+        pass
