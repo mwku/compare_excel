@@ -25,11 +25,7 @@ def read_file(file_path:str) -> pd.DataFrame:
     """
     Read a file and return a dataframe.
     """
-    if file_path.endswith('.csv'):
-        return pd.read_csv(file_path)
-    elif file_path.endswith('.xlsx'):
-        return pd.read_excel(file_path)
-    else:
-        raise ValueError('File type not supported')
+    return pd.read_excel(file_path)
 
-
+app = ui.Upload(read_file)
+app.mainloop()

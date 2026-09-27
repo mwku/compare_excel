@@ -6,5 +6,6 @@ readme = "documents/README.md"
 requires-python = ">=3.13"
 dependencies = [
     "customtkinter>=6.0.0",
+    "openpyxl>=3.1.5",
     "pandas>=3.0.6",
 ]
