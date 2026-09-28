@@ -50,6 +50,11 @@ def compare_same(data_a:pd.DataFrame,data_b:pd.DataFrame) -> pd.DataFrame:
     except Exception as e:
         raise Exception(f"比較過程中發生錯誤: {e}")
 
+def compare_diff(data_a:pd.DataFrame,data_b:pd.DataFrame,keyword:tuple[str]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    result_a = data_a
+    result_b = data_b
+    return (result_a,result_b)
+
 def to_excel(data:pd.DataFrame,path:str) -> bool:
     try:
         data.to_excel(path, index=False)

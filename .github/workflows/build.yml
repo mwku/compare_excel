@@ -21,12 +21,21 @@ jobs:
         include:
           - runner: windows-2022
             python-architecture: x86
+            python-version: '3.11'
+            pandas-version: '2.0.3'
+            numpy-specifier: 'numpy<2'
             artifact: windows-x86
           - runner: windows-2022
             python-architecture: x64
+            python-version: '3.13'
+            pandas-version: '3.0.6'
+            numpy-specifier: 'numpy'
             artifact: windows-x64
           - runner: windows-11-arm
             python-architecture: arm64
+            python-version: '3.13'
+            pandas-version: '3.0.6'
+            numpy-specifier: 'numpy'
             artifact: windows-arm64
 
     steps:
@@ -36,14 +45,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.python-architecture }}
           cache: pip
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pyinstaller
+          python -m pip install "pandas==${{ matrix.pandas-version }}" "${{ matrix.numpy-specifier }}" customtkinter openpyxl pyinstaller
 
       - name: Build executable
         run: >-
@@ -51,6 +60,7 @@ jobs:
           --clean
           --noconfirm
           --onefile
+          --windowed
           --name excel-${{ matrix.artifact }}
           main.py
 
