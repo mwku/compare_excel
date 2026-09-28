@@ -17,7 +17,7 @@ def compare_same(data_a:pd.DataFrame,data_b:pd.DataFrame) -> pd.DataFrame:
                 title_now = data_a["素材規格"].iloc[i]
             data_a_list.append((str(title_now), float(data_a["成品長度"].iloc[i]), int(data_a["成品數量"].iloc[i])))
 
-        data_b_dict = {} # 規格：(長度(float),數量(int))
+        data_b_dict = {} # 規格：[長度(float),數量(int),構件編號(str)]
         for i in range(len(data_b)):
             if pd.notna(data_b["素材規格"].iloc[i]) and data_b["素材規格"].iloc[i] != "":
                 title_now = data_b["素材規格"].iloc[i]
@@ -43,21 +43,12 @@ def compare_same(data_a:pd.DataFrame,data_b:pd.DataFrame) -> pd.DataFrame:
         for i in range(len(result)):
             r.at[r.index[i], "構件編號"] = ",".join(result[i])
         return r
+    
     except KeyError as e:
         raise KeyError(f"請確認關鍵字{e}是否存在或檔名是否正確")
-
-
-            
-
-
-    return_data_a = pd.DataFrame(columns=data_a.columns)
-    return_data_b = pd.DataFrame(columns=data_b.columns)
-
-    for i in range(len(result)):
-        return_data_a = pd.concat([return_data_a, data_a.iloc[[result[i][0]]]])
-        return_data_b = pd.concat([return_data_b, data_b.iloc[[result[i][1]]]])
-
-    return (return_data_a, return_data_b)
+    
+    except Exception as e:
+        raise Exception(f"比較過程中發生錯誤: {e}")
 
 def to_excel(data:pd.DataFrame,path:str) -> bool:
     try:
@@ -73,5 +64,5 @@ def read_file(file_path:str) -> pd.DataFrame:
     """
     return pd.read_excel(file_path)
 
-app = ui.App(read_file,compare_same)
+app = ui.App(read_file,compare_same,to_excel)
 app.mainloop()
