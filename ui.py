@@ -31,7 +31,7 @@ class SelectColumns(ctk.CTkToplevel):
         self.parent = parent
         self.callback = callback
         self.title("Select Columns")
-        self.geometry("700x500")
+        self.geometry("700x600")
         self.transient(parent)
         self.resizable(False, False)
 
@@ -59,23 +59,24 @@ class SelectColumns(ctk.CTkToplevel):
             row=0, column=2, padx=(8, 0), pady=5, sticky="ew"
         )
 
-        self.columns_frame = ctk.CTkScrollableFrame(
-            self,
-            width=660,
-            height=390,
-            fg_color="transparent",
-        )
-        self.columns_frame.pack(fill="both", expand=True, padx=20, pady=5)
+        self.columns_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.columns_frame.configure(height=390)
+        self.columns_frame.pack(fill="x", expand=False, padx=20, pady=5)
         self.columns_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        self.columns_frame.grid_rowconfigure(0, weight=1)
 
-        self.a_frame = ctk.CTkFrame(self.columns_frame)
+        self.a_frame = ctk.CTkScrollableFrame(self.columns_frame, width=200, height=390)
         self.a_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
         for column in columns_a:
             ctk.CTkLabel(self.a_frame, text=column, anchor="w").pack(
                 fill="x", padx=10, pady=1
             )
 
-        self.selection_frame = ctk.CTkFrame(self.columns_frame)
+        self.selection_frame = ctk.CTkScrollableFrame(
+            self.columns_frame,
+            width=200,
+            height=390,
+        )
         self.selection_frame.grid(row=0, column=1, sticky="nsew", padx=8)
         for column, variable in self.selected_columns.items():
             ctk.CTkCheckBox(
@@ -84,7 +85,7 @@ class SelectColumns(ctk.CTkToplevel):
                 variable=variable,
             ).pack(anchor="w", padx=10, pady=1)
 
-        self.b_frame = ctk.CTkFrame(self.columns_frame)
+        self.b_frame = ctk.CTkScrollableFrame(self.columns_frame, width=200, height=390)
         self.b_frame.grid(row=0, column=2, sticky="nsew", padx=(8, 0))
         for column in columns_b:
             ctk.CTkLabel(self.b_frame, text=column, anchor="w").pack(
