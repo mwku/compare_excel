@@ -42,3 +42,4 @@ pip install <module name>
 python main.py
 ```
 ## Congratulations You Are All Set
+[download counter](https://tooomm.github.io/github-release-stats/?username=mwku&repository=compare_excel)

@@ -25,12 +25,111 @@ class Alert(ctk.CTkToplevel):
         if self.winfo_exists():
             self.after_idle(self.focus_force)
 
+class SelectColumns(ctk.CTkToplevel):
+    def __init__(self, parent: ctk.CTk, data_a, data_b, callback: Callable):
+        super().__init__(parent)
+        self.parent = parent
+        self.callback = callback
+        self.title("Select Columns")
+        self.geometry("700x500")
+        self.transient(parent)
+        self.resizable(False, False)
+
+        columns_a = [str(column) for column in data_a.columns]
+        columns_b = [str(column) for column in data_b.columns]
+        common_columns = [column for column in columns_a if column in columns_b]
+
+        self.selected_columns = {
+            column: tk.BooleanVar(value=False) for column in common_columns
+        }
+
+        self.title_label = ctk.CTkLabel(self, text="請勾選要比較的共同標題")
+        self.title_label.pack(pady=(15, 5))
+
+        self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.header_frame.pack(fill="x", padx=20, pady=(5, 0))
+        self.header_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        ctk.CTkLabel(self.header_frame, text="A 標題").grid(
+            row=0, column=0, padx=(0, 8), pady=5, sticky="ew"
+        )
+        ctk.CTkLabel(self.header_frame, text="共同標題（勾選）").grid(
+            row=0, column=1, padx=8, pady=5, sticky="ew"
+        )
+        ctk.CTkLabel(self.header_frame, text="B 標題").grid(
+            row=0, column=2, padx=(8, 0), pady=5, sticky="ew"
+        )
+
+        self.columns_frame = ctk.CTkScrollableFrame(
+            self,
+            width=660,
+            height=390,
+            fg_color="transparent",
+        )
+        self.columns_frame.pack(fill="both", expand=True, padx=20, pady=5)
+        self.columns_frame.grid_columnconfigure((0, 1, 2), weight=1)
+
+        self.a_frame = ctk.CTkFrame(self.columns_frame)
+        self.a_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        for column in columns_a:
+            ctk.CTkLabel(self.a_frame, text=column, anchor="w").pack(
+                fill="x", padx=10, pady=1
+            )
+
+        self.selection_frame = ctk.CTkFrame(self.columns_frame)
+        self.selection_frame.grid(row=0, column=1, sticky="nsew", padx=8)
+        for column, variable in self.selected_columns.items():
+            ctk.CTkCheckBox(
+                self.selection_frame,
+                text=column,
+                variable=variable,
+            ).pack(anchor="w", padx=10, pady=1)
+
+        self.b_frame = ctk.CTkFrame(self.columns_frame)
+        self.b_frame.grid(row=0, column=2, sticky="nsew", padx=(8, 0))
+        for column in columns_b:
+            ctk.CTkLabel(self.b_frame, text=column, anchor="w").pack(
+                fill="x", padx=10, pady=1
+            )
+
+        self.confirm_button = ctk.CTkButton(
+            self,
+            text="確認",
+            command=self.confirm,
+        )
+        self.confirm_button.pack(pady=(5, 15))
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        self.grab_set()
+        self.focus_force()
+        self.confirm_button.focus_set()
+        self.bind("<FocusOut>", self._restore_focus)
+
+    def confirm(self):
+        selected_columns = [
+            column
+            for column, variable in self.selected_columns.items()
+            if variable.get()
+        ]
+        self.grab_release()
+        self.destroy()
+        self.callback(selected_columns)
+
+    def cancel(self):
+        self.grab_release()
+        self.destroy()
+
+    def _restore_focus(self, _event=None):
+        if self.winfo_exists():
+            self.after_idle(self.focus_force)
+
 class App(ctk.CTk):
-    def __init__(self,read_file:Callable,compare_same:Callable,to_excel:Callable):
+    def __init__(self,read_file:Callable,compare_same:Callable,to_excel:Callable,compare_diff:Callable):
         super().__init__()
         self.read_file = read_file
         self.compare_same = compare_same
         self.to_excel = to_excel
+        self.compare_diff = compare_diff
+        # self.find_same_columns = find_same_columns
         # self.set_default_color_theme("dark-blue")
 
         self.title("Compare Excel Files")
@@ -42,6 +141,7 @@ class App(ctk.CTk):
         # self.minsize(480, 320)
         # self.state('zoomed')
         self.init_ui()
+        self.alert = Alert(self, "包含百分比％的欄位可能被轉換成小數並產生誤差")
 
     def _clear_page(self):
         for name in (
@@ -165,6 +265,9 @@ class App(ctk.CTk):
 
     def compare_same_(self):
         try:
+            self.alert = Alert(self,"請先確認:\n每橫列皆包含『成品長度』、『成品數量』數值\n並確保檔案B每橫列皆包含『構件編號』值\n否則可能會出現錯誤或無法正確配對")
+            self.alert.focus()
+            self.alert.wait_window()
             self.result=self.compare_same(self.read_file(self.path_a), self.read_file(self.path_b))
             
             self.function_choice_container.destroy()
@@ -178,6 +281,10 @@ class App(ctk.CTk):
             self.back_to_function_button.configure(height=50,width=400)
             self.back_to_function_button.place(relx=0.5, rely=0.6, anchor="center")
 
+            self.is_restart_button = ctk.CTkButton(self, text="重新開始", command=self.restart,fg_color="#bd6161",hover_color="#6c3333")
+            self.is_restart_button.configure(height=50,width=400)
+            self.is_restart_button.place(relx=0.5, rely=0.8, anchor="center")
+
             self.update()
 
             # self.save_excel()
@@ -187,7 +294,29 @@ class App(ctk.CTk):
             # print(f"Failed to compare files: {e}")
 
     def compare_different(self):
-        pass
+        try:
+            data_a = self.read_file(self.path_a)
+            data_b = self.read_file(self.path_b)
+            self.select_columns = SelectColumns(
+                self, data_a, data_b, self.compare_diff_callback
+            )
+        except Exception as e:
+            self.alert = Alert(self, f"Failed to read files: {e}")
+            self.alert.focus()
+
+    def compare_diff_callback(self, selected_columns: list[str]):
+        if not selected_columns:
+            self.alert = Alert(self, "請至少勾選一個共同標題")
+            self.alert.focus()
+            return
+        try:
+            data_a = self.read_file(self.path_a)
+            data_b = self.read_file(self.path_b)
+            self.result = self.compare_diff(data_a, data_b, selected_columns)
+        except Exception as e:
+            self.alert = Alert(self, f"Failed to compare files: {e}")
+            self.alert.focus()
+
 
     def restart(self):
         try:
@@ -212,6 +341,7 @@ class App(ctk.CTk):
         try:
             self.save_button.configure(state="disabled")
             self.back_to_function_button.configure(state="disabled")
+            self.is_restart_button.configure(state="disabled")
             # self.back_to_function_button.place(relx=0.5, rely=0.75, anchor="center")
             path = ctk.filedialog.asksaveasfilename(
                 defaultextension=".xlsx", 
@@ -220,16 +350,12 @@ class App(ctk.CTk):
                 title="Save Compare Result",
                 initialdir="/".join(self.path_b.split("/")[0:-1]),
                 initialfile="result.xlsx")
-            if not path:
-                self.save_button.configure(state="normal")
-                self.back_to_function_button.configure(state="normal")
-                return
-            self.to_excel(self.result,path)
             self.save_button.configure(state="normal")
             self.back_to_function_button.configure(state="normal")
-            self.is_restart_button = ctk.CTkButton(self, text="重新開始", command=self.restart,fg_color="#bd6161",hover_color="#6c3333")
-            self.is_restart_button.configure(height=50,width=400)
-            self.is_restart_button.place(relx=0.5, rely=0.8, anchor="center")
+            self.is_restart_button.configure(state="normal")
+            if not path:
+                return
+            self.to_excel(self.result,path)
             return 
         except Exception as e:
             self.alert = Alert(self, f"Failed to save file: {e}")

@@ -13,13 +13,13 @@ def compare_same(data_a:pd.DataFrame,data_b:pd.DataFrame) -> pd.DataFrame:
         data_a_list = [] # 規格 長度(float) 數量(int)
         title_now = ""
         for i in range(len(data_a)):
-            if pd.notna(data_a["素材規格"].iloc[i]) and data_a["素材規格"].iloc[i] != "":
+            if data_a["素材規格"].iloc[i] != "":
                 title_now = data_a["素材規格"].iloc[i]
             data_a_list.append((str(title_now), float(data_a["成品長度"].iloc[i]), int(data_a["成品數量"].iloc[i])))
 
         data_b_dict = {} # 規格：[長度(float),數量(int),構件編號(str)]
         for i in range(len(data_b)):
-            if pd.notna(data_b["素材規格"].iloc[i]) and data_b["素材規格"].iloc[i] != "":
+            if data_b["素材規格"].iloc[i] != "":
                 title_now = data_b["素材規格"].iloc[i]
             if data_b_dict.get(title_now) is None:
                 data_b_dict[title_now] = []
@@ -42,6 +42,7 @@ def compare_same(data_a:pd.DataFrame,data_b:pd.DataFrame) -> pd.DataFrame:
         r["構件編號"] = ""
         for i in range(len(result)):
             r.at[r.index[i], "構件編號"] = ",".join(result[i])
+        # print(r)
         return r
     
     except KeyError as e:
@@ -55,19 +56,20 @@ def compare_diff(data_a:pd.DataFrame,data_b:pd.DataFrame,keyword:tuple[str]) -> 
     result_b = data_b
     return (result_a,result_b)
 
+
+
 def to_excel(data:pd.DataFrame,path:str) -> bool:
     try:
         data.to_excel(path, index=False)
         return True
     except Exception as e:
-        # print(f"Failed to write to Excel: {e}")
         return False
 
 def read_file(file_path:str) -> pd.DataFrame:
     """
     Read a file and return a dataframe.
     """
-    return pd.read_excel(file_path)
+    return pd.read_excel(file_path,dtype=str,keep_default_na=False, na_filter=False)
 
-app = ui.App(read_file,compare_same,to_excel)
+app = ui.App(read_file,compare_same,to_excel,compare_diff)
 app.mainloop()
